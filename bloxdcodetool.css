@@ -16,6 +16,8 @@
         button:hover { box-shadow: 0 0 10px rgba(0, 255, 136, .4); transform: translateY(-1px); }
         button.secondary { background: #333; color: white; border: 1px solid #555; }
         button.secondary:hover { border-color: #9aa8a0; box-shadow: none; }
+        #save-workspace-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+        #save-workspace-button img { width: 18px; height: 18px; object-fit: contain; }
         .header-btn-group .header-link {
             display: inline-flex;
             align-items: center;
