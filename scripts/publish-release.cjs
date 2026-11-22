@@ -42,3 +42,24 @@ if (platform === "win") {
     fs.copyFileSync(packagePath, path.join(releaseAssetsDirectory, path.basename(releasePackagePath)));
     process.stdout.write(`Staged GitHub Release package ${releasePackagePath}\n`);
 }
+
+const generatedIntermediates = [
+    "deb-staging",
+    "linux-unpacked",
+    "mac",
+    "mac-arm64",
+    "mac-universal",
+    "mac-x64",
+    "nsis-web",
+    "win-unpacked",
+    "BloxdBlocks-Setup-v2.exe",
+    "BloxdBlocks-v3-Setup-x64.nsis.7z",
+    "BloxdBlocks-v3-Setup.exe",
+    "BloxdBlocks-v3-Setup.deb",
+    "BloxdBlocks-v3-Setup.dmg",
+    "builder-debug.yml"
+];
+for (const name of generatedIntermediates) {
+    fs.rmSync(path.join(buildDirectory, name), { recursive: true, force: true });
+}
+process.stdout.write("Removed temporary build outputs; final release files are in release-artifacts/release-assets.\n");
