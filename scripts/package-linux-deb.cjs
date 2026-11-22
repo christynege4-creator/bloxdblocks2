@@ -5,9 +5,11 @@ const root = path.resolve(__dirname, "..");
 const buildDirectory = path.join(root, "release-artifacts");
 const appDirectory = path.join(buildDirectory, "linux-unpacked");
 const stagingDirectory = path.join(buildDirectory, "deb-staging");
-const outputPath = path.join(buildDirectory, "BloxdBlocks-v3-Setup.deb");
+const outputPath = path.join(buildDirectory, "BloxdBlocks-v3-Setup-linux-x64.deb");
+const webInstallerPath = path.join(buildDirectory, "BloxdBlocks-v3-Setup.deb");
 const packageInfo = require("../package.json");
 const architecture = "amd64";
+const maxWebInstallerBytes = 25_000_000;
 
 function assertFile(filePath, description) {
     if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
@@ -39,10 +41,10 @@ function makeArMember(name, content) {
         : Buffer.concat([header, content, Buffer.from("\n")]);
 }
 
-function writeDebianArchive(controlTar, dataTar) {
+function writeDebianArchive(packagePath, controlTar, dataTar) {
     const globalHeader = Buffer.from("!<arch>\n", "ascii");
     const debianVersion = Buffer.from("2.0\n", "ascii");
-    fs.writeFileSync(outputPath, Buffer.concat([
+    fs.writeFileSync(packagePath, Buffer.concat([
         globalHeader,
         makeArMember("debian-binary", debianVersion),
         makeArMember("control.tar.gz", controlTar),
@@ -157,7 +159,7 @@ async function main() {
             ].includes(entryPath)) entry.stat.mode = 0o100755;
         }
     }, ["."]);
-    writeDebianArchive(fs.readFileSync(controlTarPath), fs.readFileSync(dataTarPath));
+    writeDebianArchive(outputPath, fs.readFileSync(controlTarPath), fs.readFileSync(dataTarPath));
 
     const members = readArMembers(fs.readFileSync(outputPath));
     if (members.get("debian-binary")?.toString("ascii") !== "2.0\n" ||
@@ -192,7 +194,92 @@ async function main() {
             }
         }
     });
-    process.stdout.write(`Created ${outputPath} (${fs.statSync(outputPath).size} bytes).\n`);
+
+    const webControlDirectory = path.join(stagingDirectory, "web-control");
+    const webDataDirectory = path.join(stagingDirectory, "web-data");
+    const webControlTarPath = path.join(stagingDirectory, "web-control.tar.gz");
+    const webDataTarPath = path.join(stagingDirectory, "web-data.tar.gz");
+    fs.mkdirSync(webControlDirectory, { recursive: true });
+    fs.mkdirSync(webDataDirectory, { recursive: true });
+    fs.writeFileSync(path.join(webControlDirectory, "control"), [
+        "Package: bloxdblocks-web-installer",
+        `Version: ${packageInfo.version}`,
+        "Section: devel",
+        "Priority: optional",
+        `Architecture: ${architecture}`,
+        "Depends: ca-certificates, curl | wget",
+        "Maintainer: BloxdBlocks Contributors",
+        "Homepage: https://github.com/CHRISTYNEGE4-CREATOR/BLOXDBLOCKS",
+        "Description: Web installer for BloxdBlocks",
+        " Downloads the full BloxdBlocks desktop app from the latest GitHub Release.",
+        ""
+    ].join("\n"));
+    fs.writeFileSync(path.join(webControlDirectory, "postinst"), [
+        "#!/bin/sh",
+        "set -eu",
+        "package_url=https://github.com/CHRISTYNEGE4-CREATOR/BLOXDBLOCKS/releases/latest/download/BloxdBlocks-v3-Setup-linux-x64.deb",
+        "tmp_deb=\"$(mktemp)\"",
+        "trap 'rm -f \"$tmp_deb\"' 0 HUP INT TERM",
+        "if command -v curl >/dev/null 2>&1; then",
+        "    curl --fail --location --show-error \"$package_url\" --output \"$tmp_deb\"",
+        "elif command -v wget >/dev/null 2>&1; then",
+        "    wget --output-document=\"$tmp_deb\" \"$package_url\"",
+        "else",
+        "    echo 'BloxdBlocks requires curl or wget to download its app package.' >&2",
+        "    exit 1",
+        "fi",
+        "dpkg-deb --extract \"$tmp_deb\" /",
+        "if command -v update-mime-database >/dev/null 2>&1; then",
+        "    update-mime-database /usr/share/mime",
+        "fi",
+        "if command -v update-desktop-database >/dev/null 2>&1; then",
+        "    update-desktop-database /usr/share/applications",
+        "fi",
+        ""
+    ].join("\n"));
+    fs.chmodSync(path.join(webControlDirectory, "postinst"), 0o755);
+    await tar.c({
+        cwd: webControlDirectory,
+        portable: true,
+        noMtime: true,
+        gzip: true,
+        file: webControlTarPath,
+        onWriteEntry(entry) {
+            if (entry.path === "postinst") entry.stat.mode = 0o100755;
+        }
+    }, ["control", "postinst"]);
+    await tar.c({
+        cwd: webDataDirectory,
+        portable: true,
+        noMtime: true,
+        gzip: true,
+        file: webDataTarPath
+    }, []);
+    writeDebianArchive(webInstallerPath, fs.readFileSync(webControlTarPath), fs.readFileSync(webDataTarPath));
+
+    const webMembers = readArMembers(fs.readFileSync(webInstallerPath));
+    if (!webMembers.has("control.tar.gz") || !webMembers.has("data.tar.gz")) {
+        throw new Error("The generated web installer is missing required Debian archive members.");
+    }
+    const webControlVerifyDirectory = path.join(stagingDirectory, "verify-web-control");
+    fs.mkdirSync(webControlVerifyDirectory, { recursive: true });
+    const verifyWebControlPath = path.join(webControlVerifyDirectory, "control.tar.gz");
+    fs.writeFileSync(verifyWebControlPath, webMembers.get("control.tar.gz"));
+    await tar.x({ file: verifyWebControlPath, cwd: webControlVerifyDirectory });
+    const webControl = fs.readFileSync(path.join(webControlVerifyDirectory, "control"), "utf8");
+    const webPostinst = fs.readFileSync(path.join(webControlVerifyDirectory, "postinst"), "utf8");
+    if (!webControl.includes("Package: bloxdblocks-web-installer") ||
+        !webControl.includes("Depends: ca-certificates, curl | wget") ||
+        !webPostinst.includes("/releases/latest/download/BloxdBlocks-v3-Setup-linux-x64.deb") ||
+        (fs.statSync(path.join(webControlVerifyDirectory, "postinst")).mode & 0o111) !== 0o111) {
+        throw new Error("The generated Debian web installer is missing its download or installation configuration.");
+    }
+    const webInstallerBytes = fs.statSync(webInstallerPath).size;
+    if (webInstallerBytes >= maxWebInstallerBytes) {
+        throw new Error(`The Debian web installer must be smaller than 25 MB; got ${webInstallerBytes} bytes.`);
+    }
+    process.stdout.write(`Created full Linux package ${outputPath} (${fs.statSync(outputPath).size} bytes).\n`);
+    process.stdout.write(`Created Debian web installer ${webInstallerPath} (${webInstallerBytes} bytes).\n`);
 }
 
 main().catch(error => {
