@@ -27,7 +27,7 @@ The download page enables the installer link only when a non-empty package is se
 
 ## Documentation
 
-- [About the project](https://github.com/christynege4-creator/bloxdblocks/tree/main/about/ABOUT.md)
+- [About the project](./about/ABOUT.md)
 - [Callbacks and events](./how-tos/EVENTS.md)
 - [Bloxd API method blocks](./how-tos/API-METHODS.md)
 - [Built-in operators and blocks](./how-tos/OPERATORS.md)
