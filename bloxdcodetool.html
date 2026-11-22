@@ -11,15 +11,15 @@
 <body>
 <header>
     <span><img src="assets/bloxdblocks.logo.png" alt="BloxdBlocks"><a href="index.html"></a></span>
-    <div class="header-btn-group">
-        <a class="button secondary" href="download.html">⬇ Download</a>
-        <a class="button secondary" href="docs/docs.html">📖 Docs</a>
+    <nav class="header-btn-group" aria-label="Editor navigation and actions">
+        <a class="button header-link header-download" href="download.html"><span aria-hidden="true">↓</span> Download</a>
+        <a class="button header-link header-docs" href="docs/docs.html"><span aria-hidden="true">▤</span> Docs</a>
         <button class="secondary" onclick="showExamples()">💡 Examples</button>
         <button class="secondary" onclick="startTutorial()">❓ Help</button>
         <button onclick="saveWorkspace()" style="background:var(--neon-blue); color:black;">💾 SAVE</button>
         <button onclick="loadWorkspace()" style="background:var(--neon-orange); color:black;">📂 LOAD</button>
         <button id="runBtn">▶ START</button>
-    </div>
+    </nav>
 </header>
 <input id="workspace-file-input" type="file" accept=".bb,application/json" hidden aria-label="Choose a Bloxd Block workspace file">
 
