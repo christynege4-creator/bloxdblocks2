@@ -19,12 +19,12 @@ function filterDocs() {
 }
 
 search.addEventListener('input', filterDocs);
-    document.addEventListener('keydown', event => {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-            event.preventDefault();
+    document.addEventListener('keydown', (evnt) => {
+        if ((evnt.ctrlKey || evnt.metaKey) && evnt.key.toLowerCase() === 'k') {
+            evnt.preventDefault();
             search.focus();
         }
-        if (event.key === 'Escape' && document.activeElement === search) {
+        if (evnt.key === 'Escape' && document.activeElement === search) {
             search.value = '';
             filterDocs();
             search.blur();
