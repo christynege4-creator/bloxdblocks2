@@ -54,7 +54,7 @@ module.exports = {
     },
     linux: {
         icon: "assets/bloxdblocks-icon.png",
-        target: ["deb"],
+        target: ["dir"],
         category: "Development",
         maintainer: "BloxdBlocks"
     }
