@@ -698,6 +698,19 @@
 
     const workspaceFileFormat = 'bloxd-block';
     const workspaceFileVersion = 1;
+    let workspaceFileName = 'bloxd-workspace.bb';
+
+    function normalizeWorkspaceFileName(fileName) {
+        const baseName = String(fileName || '')
+            .split(/[\\/]/)
+            .pop()
+            .replace(/[<>:"|?*\x00-\x1f]/g, '_')
+            .trim();
+        const name = baseName || 'bloxd-workspace.bb';
+        return name.toLowerCase().endsWith('.bb')
+            ? name
+            : `${name.replace(/\.[^.]+$/, '') || 'bloxd-workspace'}.bb`;
+    }
 
     function createWorkspaceFileData() {
         const canvas = document.getElementById('block-canvas');
@@ -823,7 +836,7 @@
         userTypes.clear();
     }
 
-    window.saveWorkspace = function() {
+    window.saveWorkspace = async function() {
         try {
             const fileData = createWorkspaceFileData();
             const contents = JSON.stringify(fileData, null, 2);
@@ -831,24 +844,43 @@
                 if (!window.BloxdNative.saveWorkspace(contents)) {
                     throw new Error('The Android app could not save the file.');
                 }
+            } else if (window.BloxdDesktop) {
+                const result = await window.BloxdDesktop.saveWorkspace(contents, workspaceFileName);
+                if (result.canceled) return;
+                workspaceFileName = normalizeWorkspaceFileName(result.fileName);
+            } else if (typeof window.showSaveFilePicker === 'function') {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: workspaceFileName,
+                    types: [{
+                        description: 'BloxdBlocks Block File',
+                        accept: { 'application/json': ['.bb'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(contents);
+                await writable.close();
+                workspaceFileName = normalizeWorkspaceFileName(handle.name);
             } else {
+                const selectedName = window.prompt('Save as (.bb):', workspaceFileName);
+                if (selectedName === null) return;
+                workspaceFileName = normalizeWorkspaceFileName(selectedName);
                 const blob = new Blob([contents], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = 'bloxd-workspace.bb';
+                link.download = workspaceFileName;
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 1000);
             }
-            const button = document.querySelector('button[onclick="saveWorkspace()"]');
-            if (button) {
-                const originalText = button.textContent;
-                button.textContent = '✅ SAVED';
-                setTimeout(() => { button.textContent = originalText; }, 1200);
+            const label = document.getElementById('save-workspace-label');
+            if (label) {
+                label.textContent = 'SAVED';
+                setTimeout(() => { label.textContent = 'SAVE'; }, 1200);
             }
         } catch (error) {
+            if (error.name === 'AbortError') return;
             alert(`Could not save the Bloxd Block file: ${error.message}`);
         }
     };
@@ -878,6 +910,7 @@
                 canvas.appendChild(block);
             });
             updateCodeView();
+            workspaceFileName = normalizeWorkspaceFileName(fileName);
         } catch (error) {
             alert(`Could not load the Bloxd Block file: ${error.message}`);
         }
