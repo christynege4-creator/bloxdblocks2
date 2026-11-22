@@ -1,0 +1,4 @@
+node_modules/
+release-artifacts/
+assets/downloads/*
+!assets/downloads/BloxdBlocks-v3-Setup.exe
