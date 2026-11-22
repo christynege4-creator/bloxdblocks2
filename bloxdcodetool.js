@@ -369,7 +369,7 @@
     }
 
     // --- CLICK HANDLER FOR BOOLEAN TOGGLE ---
-    document.addEventListener('click', e => {
+    document.addEventListener('click', (e) => {
         if (e.target.closest('.toggle-bool')) {
             const socket = e.target.closest('.toggle-bool');
             const input = socket.querySelector('input');
