@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const zlib = require("node:zlib");
 const tar = require("tar");
 const root = path.resolve(__dirname, "..");
 const buildDirectory = path.join(root, "release-artifacts");
@@ -196,11 +197,9 @@ async function main() {
     });
 
     const webControlDirectory = path.join(stagingDirectory, "web-control");
-    const webDataDirectory = path.join(stagingDirectory, "web-data");
     const webControlTarPath = path.join(stagingDirectory, "web-control.tar.gz");
     const webDataTarPath = path.join(stagingDirectory, "web-data.tar.gz");
     fs.mkdirSync(webControlDirectory, { recursive: true });
-    fs.mkdirSync(webDataDirectory, { recursive: true });
     fs.writeFileSync(path.join(webControlDirectory, "control"), [
         "Package: bloxdblocks-web-installer",
         `Version: ${packageInfo.version}`,
@@ -248,13 +247,7 @@ async function main() {
             if (entry.path === "postinst") entry.stat.mode = 0o100755;
         }
     }, ["control", "postinst"]);
-    await tar.c({
-        cwd: webDataDirectory,
-        portable: true,
-        noMtime: true,
-        gzip: true,
-        file: webDataTarPath
-    }, []);
+    fs.writeFileSync(webDataTarPath, zlib.gzipSync(Buffer.alloc(1024)));
     writeDebianArchive(webInstallerPath, fs.readFileSync(webControlTarPath), fs.readFileSync(webDataTarPath));
 
     const webMembers = readArMembers(fs.readFileSync(webInstallerPath));
