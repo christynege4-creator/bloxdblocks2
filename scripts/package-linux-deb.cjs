@@ -261,10 +261,17 @@ async function main() {
     await tar.x({ file: verifyWebControlPath, cwd: webControlVerifyDirectory });
     const webControl = fs.readFileSync(path.join(webControlVerifyDirectory, "control"), "utf8");
     const webPostinst = fs.readFileSync(path.join(webControlVerifyDirectory, "postinst"), "utf8");
+    let webPostinstIsExecutable = false;
+    await tar.t({
+        file: verifyWebControlPath,
+        onentry(entry) {
+            if (entry.path === "postinst") webPostinstIsExecutable = (entry.mode & 0o111) === 0o111;
+        }
+    });
     if (!webControl.includes("Package: bloxdblocks-web-installer") ||
         !webControl.includes("Depends: ca-certificates, curl | wget") ||
         !webPostinst.includes("/releases/latest/download/BloxdBlocks-v3-Setup-linux-x64.deb") ||
-        (fs.statSync(path.join(webControlVerifyDirectory, "postinst")).mode & 0o111) !== 0o111) {
+        !webPostinstIsExecutable) {
         throw new Error("The generated Debian web installer is missing its download or installation configuration.");
     }
     const webInstallerBytes = fs.statSync(webInstallerPath).size;
