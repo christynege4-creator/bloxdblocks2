@@ -43,6 +43,17 @@ if (platform === "win") {
     process.stdout.write(`Staged GitHub Release package ${releasePackagePath}\n`);
 }
 
+if (platform === "linux") {
+    const packageName = "BloxdBlocks-v3-Setup-linux-x64.deb";
+    const packagePath = path.join(buildDirectory, packageName);
+    if (!fs.existsSync(packagePath) || fs.statSync(packagePath).size === 0) {
+        throw new Error(`The full Linux release package was not built: ${packagePath}`);
+    }
+
+    fs.copyFileSync(packagePath, path.join(releaseAssetsDirectory, packageName));
+    process.stdout.write(`Staged GitHub Release package ${packagePath}\n`);
+}
+
 const generatedIntermediates = [
     "deb-staging",
     "linux-unpacked",
@@ -54,6 +65,7 @@ const generatedIntermediates = [
     "win-unpacked",
     "BloxdBlocks-Setup-v2.exe",
     "BloxdBlocks-v3-Setup-x64.nsis.7z",
+    "BloxdBlocks-v3-Setup-linux-x64.deb",
     "BloxdBlocks-v3-Setup.exe",
     "BloxdBlocks-v3-Setup.deb",
     "BloxdBlocks-v3-Setup.dmg",
