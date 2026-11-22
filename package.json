@@ -1,0 +1,26 @@
+{
+  "name": "bloxdblocks",
+  "version": "2.0.0",
+  "private": true,
+  "desktopName": "BloxdBlocks",
+  "syncDesktopName": true,
+  "description": "BloxdBlocks visual editor for Bloxd.io world code",
+  "homepage": "https://github.com/CHRISTYNEGE4-CREATOR/BLOXDBLOCKS || https://christynege4-creator.github.io/bloxdblocks",
+  "author": "BloxdBlocks Contributors",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:favicon": "node scripts/create-favicon.cjs",
+    "dist:win": "npm run build:favicon && electron-builder --config electron-builder.config.cjs --win nsis-web --x64 && node scripts/publish-release.cjs win",
+    "dist:mac": "npm run build:favicon && electron-builder --config electron-builder.config.cjs --mac dmg --universal && node scripts/publish-release.cjs mac",
+    "dist:linux": "npm run build:favicon && electron-builder --config electron-builder.config.cjs --linux deb --x64 && node scripts/publish-release.cjs linux"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "allowScripts": {
+    "electron@35.7.5": true,
+    "electron-winstaller@5.4.0": true
+  }
+}
