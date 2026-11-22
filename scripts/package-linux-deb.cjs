@@ -87,9 +87,10 @@ async function main() {
     const installDirectory = path.join(dataDirectory, "opt", "bloxdblocks");
     const desktopDirectory = path.join(dataDirectory, "usr", "share", "applications");
     const iconDirectory = path.join(dataDirectory, "usr", "share", "icons", "hicolor", "512x512", "apps");
+    const mimeIconDirectory = path.join(dataDirectory, "usr", "share", "icons", "hicolor", "512x512", "mimetypes");
     const mimeDirectory = path.join(dataDirectory, "usr", "share", "mime", "packages");
 
-    for (const directory of [controlDirectory, installDirectory, desktopDirectory, iconDirectory, mimeDirectory]) {
+    for (const directory of [controlDirectory, installDirectory, desktopDirectory, iconDirectory, mimeIconDirectory, mimeDirectory]) {
         fs.mkdirSync(directory, { recursive: true });
     }
     fs.cpSync(appDirectory, installDirectory, { recursive: true, preserveTimestamps: true });
@@ -100,6 +101,7 @@ async function main() {
     }
 
     fs.copyFileSync(path.join(root, "assets", "bloxdblocks-icon.png"), path.join(iconDirectory, "bloxdblocks.png"));
+    fs.copyFileSync(path.join(root, "assets", "file-logo.png"), path.join(mimeIconDirectory, "application-x-bloxdblocks.png"));
     fs.writeFileSync(path.join(desktopDirectory, "bloxdblocks.desktop"), [
         "[Desktop Entry]",
         "Name=BloxdBlocks",
@@ -118,6 +120,7 @@ async function main() {
         "<mime-info xmlns=\"http://www.freedesktop.org/standards/shared-mime-info\">",
         "  <mime-type type=\"application/x-bloxdblocks\">",
         "    <comment>BloxdBlocks Block File</comment>",
+        "    <generic-icon name=\"application-x-bloxdblocks\"/>",
         "    <glob pattern=\"*.bb\"/>",
         "  </mime-type>",
         "</mime-info>",
