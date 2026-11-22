@@ -7,14 +7,82 @@
         }
 
         body { font-family: 'Consolas', monospace; background: var(--bg); color: white; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; user-select: none; }
-        header { padding: 15px; background: #000; border-bottom: 2px solid #222; display: flex; justify-content: space-between; align-items: center; z-index: 2000; }
+        header { padding: 12px 16px; background: linear-gradient(180deg, #090d0b, #000); border-bottom: 1px solid #26332c; display: flex; justify-content: space-between; align-items: center; gap: 16px; z-index: 2000; }
+        header > span { flex: 0 0 auto; }
         header > span img { display: block; width: 190px; max-height: 66px; object-fit: contain; }
         
-        .header-btn-group { display: flex; gap: 10px; }
-        button { background: var(--neon-green); color: #000; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-family: monospace; transition: 0.2s; }
-        button:hover { box-shadow: 0 0 10px var(--neon-green); transform: scale(1.05); }
+        .header-btn-group { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+        button { background: var(--neon-green); color: #000; border: none; padding: 8px 16px; border-radius: 7px; cursor: pointer; font-weight: bold; font-family: monospace; transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease; }
+        button:hover { box-shadow: 0 0 10px rgba(0, 255, 136, .4); transform: translateY(-1px); }
         button.secondary { background: #333; color: white; border: 1px solid #555; }
-        button.secondary:hover { border-color: white; box-shadow: none; }
+        button.secondary:hover { border-color: #9aa8a0; box-shadow: none; }
+        .header-btn-group .header-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 36px;
+            box-sizing: border-box;
+            padding: 7px 12px;
+            border: 1px solid #36443b;
+            border-radius: 7px;
+            background: #121916;
+            color: #d6e2da;
+            font: 700 12px/1 monospace;
+            letter-spacing: .02em;
+            text-decoration: none;
+            white-space: nowrap;
+            box-shadow: inset 0 1px rgba(255,255,255,.04);
+            transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .header-btn-group .header-link:hover {
+            transform: translateY(-1px);
+            color: #fff;
+            border-color: #738078;
+            background: #1a231e;
+        }
+        .header-btn-group .header-link:focus-visible,
+        .header-btn-group button:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+        .header-btn-group .header-download {
+            border-color: rgba(0,255,136,.52);
+            background: linear-gradient(135deg, rgba(0,255,136,.16), rgba(0,255,136,.07));
+            color: var(--neon-green);
+        }
+        .header-btn-group .header-download:hover {
+            border-color: var(--neon-green);
+            background: rgba(0,255,136,.2);
+            color: #d9ffec;
+            box-shadow: 0 0 14px rgba(0,255,136,.18);
+        }
+        .header-btn-group .header-docs {
+            border-color: rgba(0,212,255,.4);
+            background: linear-gradient(135deg, rgba(0,212,255,.14), rgba(0,212,255,.05));
+            color: #77e8ff;
+        }
+        .header-btn-group .header-docs:hover {
+            border-color: var(--neon-blue);
+            background: rgba(0,212,255,.18);
+            color: #d8f9ff;
+            box-shadow: 0 0 14px rgba(0,212,255,.16);
+        }
+        .header-btn-group .header-link:active,
+        .header-btn-group button:active { transform: translateY(0); }
+
+        @media (max-width: 900px) {
+            header { flex-wrap: wrap; padding: 10px 12px; gap: 10px; }
+            header > span { margin-inline: auto; }
+            .header-btn-group { flex: 1 1 100%; justify-content: center; gap: 6px; }
+            .header-btn-group button,
+            .header-btn-group .header-link { padding: 8px 10px; font-size: 11px; }
+        }
+
+        @media (max-width: 480px) {
+            header > span img { width: 156px; max-height: 52px; }
+            .header-btn-group > * { flex: 1 1 calc(33.333% - 6px); }
+        }
 
         .main { display: flex; flex: 1; overflow: hidden; }
         #toolbox { width: 410px; min-width: 410px; box-sizing: border-box; background: var(--panel); padding: 12px; border-right: 2px solid #222; display: flex; flex-direction: column; gap: 12px; z-index: 100; overflow: hidden; }
