@@ -77,6 +77,7 @@ async function main() {
     assertFile(path.join(appDirectory, "bloxdblocks"), "Linux app executable");
     assertFile(path.join(appDirectory, "resources", "app.asar"), "Packaged BloxdBlocks app");
     assertFile(path.join(root, "assets", "bloxdblocks-icon.png"), "BloxdBlocks application icon");
+    assertFile(path.join(root, "assets", "file-logo.png"), "BloxdBlocks file icon");
     fs.rmSync(stagingDirectory, { recursive: true, force: true });
 
     const controlDirectory = path.join(stagingDirectory, "control");
@@ -185,8 +186,14 @@ async function main() {
         onentry(entry) { dataEntries.push(entry.path.replace(/^\.\//, "")); }
     });
     if (!dataEntries.includes("opt/bloxdblocks/bloxdblocks") ||
-        !dataEntries.includes("usr/share/applications/bloxdblocks.desktop")) {
-        throw new Error("The Debian payload is missing the app or its launcher.");
+        !dataEntries.includes("usr/share/applications/bloxdblocks.desktop") ||
+        !dataEntries.includes("usr/share/icons/hicolor/512x512/mimetypes/application-x-bloxdblocks.png") ||
+        !dataEntries.includes("usr/share/mime/packages/bloxdblocks.xml")) {
+        throw new Error("The Debian payload is missing the app, launcher, or .bb file icon.");
+    }
+    const mimeDefinition = fs.readFileSync(path.join(mimeDirectory, "bloxdblocks.xml"), "utf8");
+    if (!mimeDefinition.includes('<generic-icon name="application-x-bloxdblocks"/>')) {
+        throw new Error("The Debian package is missing its BloxdBlocks file icon association.");
     }
     await tar.t({
         file: dataTarPath,
